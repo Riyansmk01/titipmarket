@@ -1229,8 +1229,8 @@ app.get("/api/analytics/summary", (req, res) => {
 });
 
 
-// VITE MIDDLEWARE BOOTSTRAP
-async function startServer() {
+// VITE MIDDLEWARE BOOTSTRAP - Setup all middleware regardless of environment
+async function setupMiddleware() {
   // Wrap all middleware setup in try-catch to prevent crashes
   try {
     if (process.env.NODE_ENV !== "production") {
@@ -1299,7 +1299,18 @@ async function startServer() {
       timestamp: new Date().toISOString()
     });
   });
+}
 
+// Setup middleware for both Vercel and local server
+setupMiddleware().catch(err => {
+  console.error("[CRITICAL] Failed to setup middleware:", err);
+  process.exit(1);
+});
+
+// Only start listening if NOT on Vercel (Vercel handles request handling)
+async function startServer() {
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`[TitipMart Central Ready] Listening on http://0.0.0.0:${PORT}`);
     console.log(`[Environment] NODE_ENV=${process.env.NODE_ENV || "development"}`);
