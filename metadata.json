@@ -1,0 +1,6 @@
+{
+  "name": "TitipMart",
+  "description": "Modern full-stack marketplace with a bright futuristic 3D UI, multi-vendor support, instant QRIS billing simulation, real-time analytics, and Gemini-powered smart product generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
