@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import { Order, Product, Category, Store, Review, LiveNotification, Payment, AppUser, ChatMessage, PromoVo } from "./src/types";
 
@@ -1187,11 +1186,16 @@ app.get("/api/analytics/summary", (req, res) => {
 // VITE MIDDLEWARE BOOTSTRAP
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+    try {
+      const { createServer: createViteServer } = await import("vite");
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } catch (e) {
+      console.warn("Vite not loaded");
+    }
   } else {
     const distPath = path.join(process.cwd(), "dist");
     // Serve static files from dist folder
