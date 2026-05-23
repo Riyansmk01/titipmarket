@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product, Order, Store } from '../types';
+import { apiUrl } from '../api';
 import { LayoutDashboard, ShoppingBag, PlusCircle, Sparkles, TrendingUp, DollarSign, Package, AlertTriangle, Trash2, Bot, CheckCircle, ArrowUpRight, Megaphone, Loader2 } from 'lucide-react';
 
 interface SellerDashboardProps {
@@ -47,7 +48,7 @@ export default function SellerDashboard({ products, orders, onRefreshData }: Sel
     }
     setAiGenerating(true);
     try {
-      const res = await fetch('/api/ai/describe', {
+      const res = await fetch(apiUrl('/api/ai/describe'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +84,7 @@ export default function SellerDashboard({ products, orders, onRefreshData }: Sel
 
     setLoading(true);
     try {
-      const res = await fetch('/api/products', {
+      const res = await fetch(apiUrl('/api/products'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -122,7 +123,7 @@ export default function SellerDashboard({ products, orders, onRefreshData }: Sel
   const handleDeleteProduct = async (prodId: string) => {
     if (!confirm("Are you sure you want to retire this product from the live 3D showcase?")) return;
     try {
-      const res = await fetch(`/api/products/${prodId}`, {
+      const res = await fetch(apiUrl(`/api/products/${prodId}`), {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -136,7 +137,7 @@ export default function SellerDashboard({ products, orders, onRefreshData }: Sel
   const handleUpdateOrderStatus = async (orderId: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'pending' ? 'processing' : currentStatus === 'processing' ? 'shipped' : 'completed';
     try {
-      const res = await fetch(`/api/orders/${orderId}/status`, {
+      const res = await fetch(apiUrl(`/api/orders/${orderId}/status`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus })

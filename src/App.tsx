@@ -5,6 +5,7 @@ import ThreeDProductCard from './components/ThreeDProductCard';
 import CheckoutModal from './components/CheckoutModal';
 import SellerDashboard from './components/SellerDashboard';
 import AdminPanel from './components/AdminPanel';
+import { apiUrl } from './api';
 
 import { 
   ShoppingCart, 
@@ -127,7 +128,7 @@ export default function App() {
   // Seed local client profile values on mount
   useEffect(() => {
     // Initial silent auto login for Reza Pratama
-    fetch('/api/auth/login', {
+    fetch(apiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'reza@titipmart.id', password: 'sandi' })
@@ -145,13 +146,13 @@ export default function App() {
   const fetchMarketplaceState = async () => {
     try {
       const [resProd, resOrders, resStores, resCats, resNotifs, resPromos, resChats] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/orders'),
-        fetch('/api/stores'),
-        fetch('/api/categories'),
-        fetch('/api/notifications'),
-        fetch('/api/promo'),
-        fetch('/api/chats')
+        fetch(apiUrl('/api/products')),
+        fetch(apiUrl('/api/orders')),
+        fetch(apiUrl('/api/stores')),
+        fetch(apiUrl('/api/categories')),
+        fetch(apiUrl('/api/notifications')),
+        fetch(apiUrl('/api/promo')),
+        fetch(apiUrl('/api/chats'))
       ]);
 
       const [prods, ords, strs, cats, notifs, pCodeList, chatList] = await Promise.all([
@@ -175,7 +176,7 @@ export default function App() {
       // Keep currentUser local state synchronized with backend db fields
       if (currentUser) {
         const freshUser = ords[0]?.buyerId ? null : true; // trigger recalculation if needed
-        fetch(`/api/auth/login`, {
+        fetch(apiUrl(`/api/auth/login`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: currentUser.email })
@@ -196,9 +197,9 @@ export default function App() {
     fetchMarketplaceState();
     // Background polling every 5 seconds to fetch active orders and chats
     const interval = setInterval(() => {
-      fetch('/api/notifications').then(r => r.json()).then(d => setNotifications(d)).catch(() => {});
-      fetch('/api/chats').then(r => r.json()).then(d => setChats(d)).catch(() => {});
-      fetch('/api/orders').then(r => r.json()).then(d => setOrders(d)).catch(() => {});
+      fetch(apiUrl('/api/notifications')).then(r => r.json()).then(d => setNotifications(d)).catch(() => {});
+      fetch(apiUrl('/api/chats')).then(r => r.json()).then(d => setChats(d)).catch(() => {});
+      fetch(apiUrl('/api/orders')).then(r => r.json()).then(d => setOrders(d)).catch(() => {});
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -206,19 +207,19 @@ export default function App() {
   // Fetch similar recommendations under detailed popup
   useEffect(() => {
     if (selectedProduct) {
-      fetch(`/api/reviews/${selectedProduct.id}`)
+      fetch(apiUrl(`/api/reviews/${selectedProduct.id}`))
         .then(res => res.json())
         .then(data => setActiveReviews(data))
         .catch(err => console.error(err));
 
-      fetch(`/api/products/similar/${selectedProduct.id}`)
+      fetch(apiUrl(`/api/products/similar/${selectedProduct.id}`))
         .then(res => res.json())
         .then(data => setSimilarProducts(data))
         .catch(err => console.error(err));
 
       // Trigger viewed history tracking on backend
       if (currentUser) {
-        fetch('/api/viewed/register', {
+        fetch(apiUrl('/api/viewed/register'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: currentUser.id, productId: selectedProduct.id })
@@ -236,7 +237,7 @@ export default function App() {
 
     if (authMode === 'login') {
       try {
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch(apiUrl('/api/auth/login'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: authEmail, password: authPassword })
@@ -260,7 +261,7 @@ export default function App() {
       }
     } else if (authMode === 'register') {
       try {
-        const res = await fetch('/api/auth/register', {
+        const res = await fetch(apiUrl('/api/auth/register'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: authUsername, email: authEmail, password: authPassword, role: 'buyer' })
@@ -277,7 +278,7 @@ export default function App() {
       }
     } else if (authMode === 'forgot') {
       try {
-        const res = await fetch('/api/auth/forgot-password', {
+        const res = await fetch(apiUrl('/api/auth/forgot-password'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: authEmail })
@@ -298,7 +299,7 @@ export default function App() {
     e.preventDefault();
     if (!newPassword.trim() || !currentUser) return;
     try {
-      const res = await fetch('/api/auth/change-password', {
+      const res = await fetch(apiUrl('/api/auth/change-password'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: currentUser.email, newPassword })
@@ -323,7 +324,7 @@ export default function App() {
       }).join(''));
       const payload = JSON.parse(jsonPayload);
       
-      const res = await fetch('/api/auth/google-login', {
+      const res = await fetch(apiUrl('/api/auth/google-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -390,7 +391,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch('/api/checkin', {
+      const res = await fetch(apiUrl('/api/checkin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id })
@@ -415,7 +416,7 @@ export default function App() {
     window.open(`https://app.pakasir.com/pay/depodomain/${amount}?order_id=topup-${currentUser.id}-${Date.now()}`, '_blank');
     
     try {
-      const res = await fetch('/api/wallet/topup', {
+      const res = await fetch(apiUrl('/api/wallet/topup'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id, amount })
@@ -434,7 +435,7 @@ export default function App() {
     if (!chatMessageInput.trim() || !currentUser) return;
 
     try {
-      const res = await fetch('/api/chats', {
+      const res = await fetch(apiUrl('/api/chats'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -469,7 +470,7 @@ export default function App() {
     };
 
     try {
-      const res = await fetch('/api/visual-search', {
+      const res = await fetch(apiUrl('/api/visual-search'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageBase64: mockImagesMap[mockSelection] || mockImagesMap.apparel })
@@ -499,7 +500,7 @@ export default function App() {
     setKycResult(null);
 
     try {
-      const res = await fetch('/api/kyc/upload', {
+      const res = await fetch(apiUrl('/api/kyc/upload'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -525,7 +526,7 @@ export default function App() {
     if (!feedbackContent.trim()) return;
 
     try {
-      const res = await fetch('/api/feedback', {
+      const res = await fetch(apiUrl('/api/feedback'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -592,7 +593,7 @@ export default function App() {
     e.stopPropagation();
     if (!currentUser) return;
     try {
-      const res = await fetch('/api/favorites/toggle', {
+      const res = await fetch(apiUrl('/api/favorites/toggle'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id, productId })
@@ -609,7 +610,7 @@ export default function App() {
 
     setSubmittingReview(true);
     try {
-      const res = await fetch('/api/reviews', {
+      const res = await fetch(apiUrl('/api/reviews'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1378,7 +1379,7 @@ export default function App() {
                         const storeBioInput = (e.target as any).storeBioInput.value;
                         const storeBannerInput = (e.target as any).storeBannerInput.value;
 
-                        const res = await fetch('/api/stores/update', {
+                        const res = await fetch(apiUrl('/api/stores/update'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
@@ -2195,7 +2196,7 @@ export default function App() {
                     const updatedUsername = formData.get('username') as string;
                     const updatedEmail = formData.get('email') as string;
                     try {
-                      const res = await fetch('/api/auth/profile', {
+                      const res = await fetch(apiUrl('/api/auth/profile'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
@@ -2404,7 +2405,7 @@ export default function App() {
                       const email = prompt("Masukkan Alamat Email Google Anda:", "pembeli.google@gmail.com");
                       if (email) {
                         const name = prompt("Masukkan Nama Profil Google Anda:", "Akun Google Baru");
-                        fetch('/api/auth/google-login', {
+                        fetch(apiUrl('/api/auth/google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email, username: name })
@@ -2435,7 +2436,7 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-1.5">
                     <button
                       onClick={async () => {
-                        const r = await fetch('/api/auth/google-login', {
+                        const r = await fetch(apiUrl('/api/auth/google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email: 'buyer.demo@titipmart.id', username: 'Buyer Demo' })
@@ -2453,7 +2454,7 @@ export default function App() {
                     <button
                       onClick={async () => {
                         // Register seller demo profile
-                        const r = await fetch('/api/auth/google-login', {
+                        const r = await fetch(apiUrl('/api/auth/google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email: 'seller.demo@titipmart.id', username: 'Seller Demo' })
@@ -2476,7 +2477,7 @@ export default function App() {
                     </button>
                     <button
                       onClick={async () => {
-                        const r = await fetch('/api/auth/google-login', {
+                        const r = await fetch(apiUrl('/api/auth/google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email: 'perdhanariyan@gmail.com', username: 'Perdhana Riyan' })

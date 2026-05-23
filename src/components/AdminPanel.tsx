@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product, Order, Store } from '../types';
+import { apiUrl } from '../api';
 import { ShieldCheck, Users, TrendingUp, AlertOctagon, HelpCircle, Check, X, ShieldAlert, BadgeInfo } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -40,7 +41,7 @@ export default function AdminPanel({ products, orders, stores, onToggleVerificat
   const handleDeleteStore = async (storeId: string) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus toko ini secara permanen?\n\nTindakan ini juga akan menghapus seluruh produk yang berafiliasi dengan toko tersebut dari sistem!")) return;
     try {
-      const res = await fetch(`/api/stores/${storeId}`, {
+      const res = await fetch(apiUrl(`/api/stores/${storeId}`), {
         method: 'DELETE'
       });
       if (res.ok) {

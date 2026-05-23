@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Order, OrderItem } from '../types';
+import { apiUrl } from '../api';
 import { X, MapPin, Truck, ChevronRight, QrCode, CreditCard, CheckCircle2, Loader2, Sparkles, Tag, Wallet } from 'lucide-react';
 
 interface CheckoutModalProps {
@@ -34,7 +35,7 @@ export default function CheckoutModal({ cart, totalPrice, onClose, onSuccess, cu
     if (!promoCode.trim()) return;
     setPromoError('');
     try {
-      const res = await fetch('/api/promo');
+      const res = await fetch(apiUrl('/api/promo'));
       const promos = await res.json();
       const matched = promos.find((p: any) => p.code.toUpperCase() === promoCode.trim().toUpperCase() && p.active);
       if (matched) {
@@ -72,7 +73,7 @@ export default function CheckoutModal({ cart, totalPrice, onClose, onSuccess, cu
       }));
 
       // If buyer selects wallet check state, backend will double verify balance triggers
-      const res = await fetch('/api/checkout', {
+      const res = await fetch(apiUrl('/api/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -112,7 +113,7 @@ export default function CheckoutModal({ cart, totalPrice, onClose, onSuccess, cu
     if (!activeOrder) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/orders/${activeOrder.id}/pay`, {
+      const res = await fetch(apiUrl(`/api/orders/${activeOrder.id}/pay`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
