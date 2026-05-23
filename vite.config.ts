@@ -23,7 +23,7 @@ export default defineConfig(() => {
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
-      minify: 'terser',
+      minify: 'terser' as const,
       sourcemap: !isProduction,
       rollupOptions: {
         output: {

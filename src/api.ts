@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /**
  * API Configuration Utility
  * Provides the correct API base URL based on environment
