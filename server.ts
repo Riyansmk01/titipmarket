@@ -4,10 +4,18 @@ import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import { Order, Product, Category, Store, Review, LiveNotification, Payment, AppUser, ChatMessage, PromoVo } from "./src/types";
 
-dotenv.config();
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env.local";
+const result = dotenv.config({ path: envFile });
+
+if (result.error && process.env.NODE_ENV === "production") {
+  console.warn(`[CRITICAL] Could not load ${envFile}: ${result.error.message}`);
+  console.warn("[WARNING] Production server will use system environment variables only!");
+  console.warn("[INFO] Make sure API keys are set as environment variables on the server!");
+}
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 app.use(express.json({ limit: "50mb" })); // Support visual search base64 image uploads securely
 
@@ -20,6 +28,16 @@ const KEYS = {
   GROQ: process.env.GROQ_API_KEY || "",
   PAKASIR_API_KEY: process.env.PAKASIR_API_KEY || ""
 };
+
+// Log environment status (without exposing actual keys)
+console.log("[ENV STATUS]");
+console.log(`  NODE_ENV: ${process.env.NODE_ENV || "not set"}`);
+console.log(`  GEMINI_API_KEY: ${KEYS.GEMINI ? "✓ Loaded" : "✗ MISSING"}`);
+console.log(`  OPENAI_API_KEY: ${KEYS.OPENAI ? "✓ Loaded" : "✗ MISSING"}`);
+console.log(`  MISTRAL_API_KEY: ${KEYS.MISTRAL ? "✓ Loaded" : "✗ MISSING"}`);
+console.log(`  NVIDIA_API_KEY: ${KEYS.NVIDIA ? "✓ Loaded" : "✗ MISSING"}`);
+console.log(`  GROQ_API_KEY: ${KEYS.GROQ ? "✓ Loaded" : "✗ MISSING"}`);
+console.log(`  PAKASIR_API_KEY: ${KEYS.PAKASIR_API_KEY ? "✓ Loaded" : "✗ MISSING"}`);
 
 // Initialize Gemini SDK instance as first options
 let ai: GoogleGenAI | null = null;
@@ -1205,6 +1223,17 @@ async function startServer() {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
+
+  // Global error handler - catches all unhandled errors and returns JSON
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("[ERROR HANDLER]", err);
+    res.status(err.status || 500).json({
+      error: process.env.NODE_ENV === "production" 
+        ? "Internal Server Error" 
+        : err.message || "Internal Server Error",
+      ...(process.env.NODE_ENV !== "production" && { stack: err.stack })
+    });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`[TitipMart Central Ready] Listening securely on port ${PORT}`);
