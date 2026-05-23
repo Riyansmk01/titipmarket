@@ -1194,7 +1194,9 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
+    // Serve static files from dist folder
     app.use(express.static(distPath));
+    // SPA fallback: serve index.html for all routes
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });

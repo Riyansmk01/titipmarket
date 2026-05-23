@@ -701,7 +701,7 @@ export default function App() {
           <div className="flex items-center gap-3 select-none">
             <div className="relative w-11 h-11 flex-shrink-0">
               <img
-                src="/src/assets/images/titipmart_logo_1779527060606.png"
+                src="/assets/images/titipmart_logo_1779527060606.png"
                 alt="TitipMart Logo"
                 className="w-full h-full object-contain rounded-2xl shadow-md border border-orange-100"
                 referrerPolicy="no-referrer"
@@ -834,7 +834,7 @@ export default function App() {
                 <section 
                   className="bg-gradient-to-r from-[#FF7A00] via-amber-500 to-orange-600 text-white rounded-3xl p-6 lg:p-9 relative overflow-hidden shadow-xl shadow-orange-500/10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center"
                   style={{
-                    backgroundImage: "linear-gradient(rgba(255, 122, 0, 0.85), rgba(234, 88, 12, 0.9)), url('/src/assets/images/marketplace_hero_banner_1779528695181.png')",
+                    backgroundImage: "linear-gradient(rgba(255, 122, 0, 0.85), rgba(234, 88, 12, 0.9)), url('/assets/images/marketplace_hero_banner_1779528695181.png')",
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundBlendMode: 'multiply'
@@ -898,7 +898,7 @@ export default function App() {
                         <span className="bg-orange-600 p-0.5 px-2 rounded">HOT ITEM</span>
                       </div>
                       <div className="h-24 bg-white/15 border border-white/10 rounded-xl flex items-center justify-center overflow-hidden">
-                        <img src="/src/assets/images/exclusive_glasses_promo_1779528963521.png" alt="glasses promo" className="w-20 h-20 object-cover rounded-lg rotate-6 hover:scale-110 transition-transform" />
+                        <img src="/assets/images/exclusive_glasses_promo_1779528963521.png" alt="glasses promo" className="w-20 h-20 object-cover rounded-lg rotate-6 hover:scale-110 transition-transform" />
                       </div>
                       <div className="flex justify-between items-center bg-black/20 p-2 rounded-lg text-xs font-mono">
                         <span>AURA GLASS XR</span>
@@ -1401,7 +1401,7 @@ export default function App() {
                       </div>
                       <div className="text-xs">
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Branding Banner JPEG</label>
-                        <input name="storeBannerInput" required defaultValue="/src/assets/images/default_store_banner_1779528712410.png" className="w-full border p-2.5 rounded-lg bg-slate-50" />
+                        <input name="storeBannerInput" required defaultValue="/assets/images/default_store_banner_1779528712410.png" className="w-full border p-2.5 rounded-lg bg-slate-50" />
                       </div>
                       <div className="text-xs">
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Bio / Deskripsi Jurnal Toko</label>
@@ -2084,7 +2084,7 @@ export default function App() {
             {/* Embedded custom promotional/welcome image */}
             <div className="w-full h-40 rounded-2xl overflow-hidden mb-4 border border-slate-100 shadow-inner">
               <img 
-                src="/src/assets/images/welcome_promo_card_1779529424669.png" 
+                src="/assets/images/welcome_promo_card_1779529424669.png" 
                 alt="Welcome to TitipMart" 
                 className="w-full h-full object-cover select-none"
               />
@@ -2666,7 +2666,7 @@ export default function App() {
             {/* Column 1 - Brand description */}
             <div className="md:col-span-4 space-y-4">
               <div className="flex items-center gap-2.5">
-                <img src="/src/assets/images/titipmart_logo_1779527060606.png" className="w-8 h-8 rounded-xl object-contain animate-pulse" alt="" />
+                <img src="/assets/images/titipmart_logo_1779527060606.png" className="w-8 h-8 rounded-xl object-contain animate-pulse" alt="" />
                 <span className="font-bold text-lg font-display text-white tracking-tight">TitipMart Hub</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed font-sans mt-2">
