@@ -740,7 +740,14 @@ JSON format requested:
       true
     );
 
-    const report = JSON.parse(aiResponse.trim());
+    let report;
+    try {
+      report = JSON.parse(aiResponse.trim());
+    } catch (parseErr) {
+      console.warn("Visual search JSON parse failed:", parseErr);
+      report = { suggestedCategoryId: "tech", matchConfidence: 0.90, predictedName: "Spatial tech hardware gear", tags: ["lookalike"] };
+    }
+
     const matchCategory = report.suggestedCategoryId || "tech";
     const lookalikeProducts = products.filter(p => p.categoryId === matchCategory);
 
@@ -751,7 +758,7 @@ JSON format requested:
     });
 
   } catch (error) {
-    console.warn("Visual search parsing issue, falling back:", error);
+    console.error("Visual search error:", error);
     res.json({
       success: true,
       verdict: { suggestedCategoryId: "tech", matchConfidence: 0.90, predictedName: "Spatial tech hardware gear", tags: ["lookalike"] },
@@ -1071,8 +1078,19 @@ app.post("/api/ai/describe", async (req, res) => {
       `Produce a description of ${productName} in category ${categoryName || "Tech Gear"}. Format strictly as JSON.`,
       true
     );
-    res.json(JSON.parse(output.trim()));
+    try {
+      res.json(JSON.parse(output.trim()));
+    } catch (parseErr) {
+      console.warn("JSON parse error in AI describe:", parseErr);
+      res.json({
+        title: `TitipMart Custom ${productName}`,
+        description: `A meticulously engineered futuristic ${productName} with customized 120hz panels, aerospace aluminum brackets, and bright high-contrast glowing elements.`,
+        threeDMeta: { rotateX: 10, rotateY: -10, translateZ: 15, glowColor: "rgba(255, 122, 0, 0.4)", scale: 1.05 },
+        bulletPoints: ["Pre-assembled design integration", "Spatial atmospheric glow accents", "Automated anti-gravity micro-levitators"]
+      });
+    }
   } catch (err: any) {
+    console.error("AI describe error:", err);
     res.json({
       title: `TitipMart Custom ${productName}`,
       description: `A meticulously engineered futuristic ${productName} with customized 120hz panels, aerospace aluminum brackets, and bright high-contrast glowing elements.`,
@@ -1091,19 +1109,29 @@ app.post("/api/ai/recommend", async (req, res) => {
       `Recommend active items from list for shopper search query: '${query || "wearing electronics"}'. Format strictly as JSON.`,
       true
     );
-    const parsed = JSON.parse(output.trim());
     
-    // Fallback enrichment
-    const enriched = products.slice(0, 2).map((p, idx) => ({
-      ...p,
-      aiReason: `Telah direkomendasikan AI TitipMart yang sesuai tingkat preferensi ${userPreferences || "belanja harian"}.`
-    }));
+    try {
+      const parsed = JSON.parse(output.trim());
+      
+      // Fallback enrichment
+      const enriched = products.slice(0, 2).map((p, idx) => ({
+        ...p,
+        aiReason: `Telah direkomendasikan AI TitipMart yang sesuai tingkat preferensi ${userPreferences || "belanja harian"}.`
+      }));
 
-    res.json({
-      recommendations: enriched,
-      smartAdvice: "Coba pasangkan aksesoris Anda dengan model Cyber Apparel untuk pencahayaan visual yang maksimal saat malam hari!"
-    });
-  } catch (err) {
+      res.json({
+        recommendations: enriched,
+        smartAdvice: "Coba pasangkan aksesoris Anda dengan model Cyber Apparel untuk pencahayaan visual yang maksimal saat malam hari!"
+      });
+    } catch (parseErr) {
+      console.warn("JSON parse error in AI recommend:", parseErr);
+      res.json({
+        recommendations: products.slice(0, 2).map(p => ({ ...p, aiReason: "Direkomendasikan otomatis berbasis kriteria lookalike TitipMart." })),
+        smartAdvice: "Gunakan produk ber-kategori Cyber Apparel untuk mendapatkan tingkat ketahanan atmosfer premium."
+      });
+    }
+  } catch (err: any) {
+    console.error("AI recommend error:", err);
     res.json({
       recommendations: products.slice(0, 2).map(p => ({ ...p, aiReason: "Direkomendasikan otomatis berbasis kriteria lookalike TitipMart." })),
       smartAdvice: "Gunakan produk ber-kategori Cyber Apparel untuk mendapatkan tingkat ketahanan atmosfer premium."
@@ -1203,45 +1231,87 @@ app.get("/api/analytics/summary", (req, res) => {
 
 // VITE MIDDLEWARE BOOTSTRAP
 async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
-    try {
-      const { createServer: createViteServer } = await import("vite");
-      const vite = await createViteServer({
-        server: { middlewareMode: true },
-        appType: "spa",
+  // Wrap all middleware setup in try-catch to prevent crashes
+  try {
+    if (process.env.NODE_ENV !== "production") {
+      try {
+        const { createServer: createViteServer } = await import("vite");
+        const vite = await createViteServer({
+          server: { middlewareMode: true },
+          appType: "spa",
+        });
+        app.use(vite.middlewares);
+        console.log("[Vite Middleware] Loaded successfully for development");
+      } catch (e) {
+        console.warn("[Vite Middleware] Failed to load, falling back to static serving:", e instanceof Error ? e.message : e);
+        // Fall back to static serving even in dev mode
+        const distPath = path.join(process.cwd(), "dist");
+        app.use(express.static(distPath));
+      }
+    } else {
+      const distPath = path.join(process.cwd(), "dist");
+      // Serve static files from dist folder
+      app.use(express.static(distPath));
+      console.log(`[Production] Serving static files from: ${distPath}`);
+      // SPA fallback: serve index.html for all routes that don't match API
+      app.get("*", (req, res) => {
+        if (!req.path.startsWith("/api")) {
+          res.sendFile(path.join(distPath, "index.html"));
+        }
       });
-      app.use(vite.middlewares);
-    } catch (e) {
-      console.warn("Vite not loaded");
     }
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    // Serve static files from dist folder
-    app.use(express.static(distPath));
-    // SPA fallback: serve index.html for all routes
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+  } catch (err) {
+    console.error("[CRITICAL] Failed during middleware setup:", err);
   }
+
+  // Catch unhandled promise rejections
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("[Unhandled Rejection]", reason);
+  });
+
+  // Catch uncaught exceptions
+  process.on("uncaughtException", (err) => {
+    console.error("[Uncaught Exception]", err);
+  });
 
   // Global error handler - catches all unhandled errors and returns JSON
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error("[ERROR HANDLER]", err);
-    res.status(err.status || 500).json({
+    console.error("[Global Error Handler]", {
+      message: err?.message || "Unknown error",
+      status: err?.status || 500,
+      stack: err?.stack || "No stack trace"
+    });
+    
+    // Ensure we always return JSON, never HTML
+    if (res.headersSent) {
+      console.warn("[Error Handler] Headers already sent, cannot respond");
+      return next(err);
+    }
+
+    res.status(err?.status || 500).json({
       error: process.env.NODE_ENV === "production" 
-        ? "Internal Server Error" 
-        : err.message || "Internal Server Error",
-      ...(process.env.NODE_ENV !== "production" && { stack: err.stack })
+        ? "Internal Server Error - Please check server logs" 
+        : (err?.message || "Internal Server Error"),
+      ...(process.env.NODE_ENV !== "production" && { 
+        stack: err?.stack,
+        details: err?.toString ? err.toString() : typeof err === "string" ? err : null
+      }),
+      timestamp: new Date().toISOString()
     });
   });
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[TitipMart Central Ready] Listening securely on port ${PORT}`);
+    console.log(`[TitipMart Central Ready] Listening on http://0.0.0.0:${PORT}`);
+    console.log(`[Environment] NODE_ENV=${process.env.NODE_ENV || "development"}`);
+    console.log(`[API Status] All routes mounted and ready`);
   });
 }
 
 if (!process.env.VERCEL) {
-  startServer();
+  startServer().catch(err => {
+    console.error("[Fatal] Failed to start server:", err);
+    process.exit(1);
+  });
 }
 
 export default app;
