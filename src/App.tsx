@@ -131,7 +131,7 @@ export default function App() {
     fetch(apiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'reza@titipmart.id', password: 'sandi' })
+      body: JSON.stringify({ email: 'reza@titipmart.id', password: 'sandi123' })
     })
     .then(res => res.json())
     .then(data => {
