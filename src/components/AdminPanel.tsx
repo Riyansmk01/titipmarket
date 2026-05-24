@@ -41,7 +41,7 @@ export default function AdminPanel({ products, orders, stores, onToggleVerificat
   const handleDeleteStore = async (storeId: string) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus toko ini secara permanen?\n\nTindakan ini juga akan menghapus seluruh produk yang berafiliasi dengan toko tersebut dari sistem!")) return;
     try {
-      const res = await fetch(apiUrl(`/api/stores/${storeId}`), {
+      const res = await fetch(apiUrl(`/api/marketplace?action=stores&id=${storeId}`), {
         method: 'DELETE'
       });
       if (res.ok) {

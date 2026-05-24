@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product } from '../types';
+import { apiUrl } from '../api';
 import { Bot, Sparkles, Send, Loader2, ArrowRight, Eye } from 'lucide-react';
 
 interface AIPanelProps {
@@ -24,7 +25,7 @@ export default function AIPanel({ onSelectProduct }: AIPanelProps) {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/ai/recommend', {
+      const res = await fetch(apiUrl('/api/ai?action=recommend'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

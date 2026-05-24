@@ -16,6 +16,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { action } = req.query;
 
+    // RECOMMEND PRODUCTS
+    if (action === 'recommend') {
+      const { query, userPreferences } = req.body;
+
+      if (!query) {
+        return res.status(400).json({
+          error: 'query is required'
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        smartAdvice: `For "${query}", we recommend products with premium quality, reliable performance, and excellent customer reviews. ${userPreferences ? 'Based on your preferences: ' + userPreferences : ''}`,
+        recommendations: [
+          {
+            id: 'rec-1',
+            title: 'Premium ' + query,
+            price: 999000,
+            categoryId: 'tech',
+            images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e'],
+            rating: 4.8,
+            aiReason: 'Top rated for ' + query
+          },
+          {
+            id: 'rec-2',
+            title: 'Professional ' + query,
+            price: 1499000,
+            categoryId: 'tech',
+            images: ['https://images.unsplash.com/photo-1522869635100-ce87fcf69808'],
+            rating: 4.7,
+            aiReason: 'Most recommended for ' + query
+          }
+        ]
+      });
+    }
+
     // DESCRIBE PRODUCT
     if (action === 'describe') {
       const { productName, categoryName } = req.body;

@@ -48,7 +48,7 @@ export default function SellerDashboard({ products, orders, onRefreshData }: Sel
     }
     setAiGenerating(true);
     try {
-      const res = await fetch(apiUrl('/api/ai/describe'), {
+      const res = await fetch(apiUrl('/api/ai?action=describe'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export default function SellerDashboard({ products, orders, onRefreshData }: Sel
 
     setLoading(true);
     try {
-      const res = await fetch(apiUrl('/api/products'), {
+      const res = await fetch(apiUrl('/api/marketplace?action=products'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,7 +123,7 @@ export default function SellerDashboard({ products, orders, onRefreshData }: Sel
   const handleDeleteProduct = async (prodId: string) => {
     if (!confirm("Are you sure you want to retire this product from the live 3D showcase?")) return;
     try {
-      const res = await fetch(apiUrl(`/api/products/${prodId}`), {
+      const res = await fetch(apiUrl(`/api/marketplace?action=products&id=${prodId}`), {
         method: 'DELETE'
       });
       if (res.ok) {
