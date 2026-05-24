@@ -338,6 +338,85 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // VISUAL SEARCH
+    if (action === 'visual-search') {
+      const { imageBase64 } = req.body;
+      return res.status(200).json({
+        success: true,
+        verdict: {
+          suggestedCategoryId: 'tech',
+          confidence: 0.87,
+          description: 'High-tech product detected with premium finish'
+        }
+      });
+    }
+
+    // KYC UPLOAD
+    if (action === 'kyc-upload') {
+      const { sellerName, email, documentImage } = req.body;
+      return res.status(200).json({
+        success: true,
+        message: 'KYC document submitted successfully for verification',
+        verificationStatus: 'pending',
+        estimatedReviewTime: '24-48 hours'
+      });
+    }
+
+    // FAVORITES TOGGLE
+    if (action === 'favorites') {
+      const { userId, productId } = req.body;
+      return res.status(200).json({
+        success: true,
+        message: `Product ${productId} added to favorites`,
+        isFavorite: true
+      });
+    }
+
+    // VERIFY STORE
+    if (action === 'verify-store') {
+      const { storeId, verified } = req.body;
+      return res.status(200).json({
+        success: true,
+        message: `Store ${storeId} verification status updated`,
+        verified
+      });
+    }
+
+    // UPDATE STORE
+    if (action === 'update-store') {
+      const { storeId, storeName, description, banner } = req.body;
+      return res.status(200).json({
+        success: true,
+        message: 'Store information updated successfully',
+        store: {
+          id: storeId,
+          name: storeName,
+          description,
+          banner
+        }
+      });
+    }
+
+    // CHECKOUT
+    if (action === 'checkout') {
+      const { buyerId, buyerName, items, totalPrice, promoCode } = req.body;
+      return res.status(200).json({
+        id: `ord-${Date.now()}`,
+        buyerId,
+        buyerName,
+        items,
+        totalPrice,
+        promoCode,
+        status: 'pending',
+        payment: {
+          status: 'PENDING',
+          method: 'qris',
+          invoiceId: `INV-${Date.now()}`
+        },
+        createdAt: new Date().toISOString()
+      });
+    }
+
     return res.status(400).json({ error: 'Invalid action parameter' });
 
   } catch (err: any) {

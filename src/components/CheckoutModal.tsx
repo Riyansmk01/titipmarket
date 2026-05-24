@@ -35,7 +35,7 @@ export default function CheckoutModal({ cart, totalPrice, onClose, onSuccess, cu
     if (!promoCode.trim()) return;
     setPromoError('');
     try {
-      const res = await fetch(apiUrl('/api/promo'));
+      const res = await fetch(apiUrl('/api/marketplace?action=promos'));
       const promos = await res.json();
       const matched = promos.find((p: any) => p.code.toUpperCase() === promoCode.trim().toUpperCase() && p.active);
       if (matched) {
@@ -73,7 +73,7 @@ export default function CheckoutModal({ cart, totalPrice, onClose, onSuccess, cu
       }));
 
       // If buyer selects wallet check state, backend will double verify balance triggers
-      const res = await fetch(apiUrl('/api/checkout'), {
+      const res = await fetch(apiUrl('/api/marketplace?action=checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -113,9 +113,10 @@ export default function CheckoutModal({ cart, totalPrice, onClose, onSuccess, cu
     if (!activeOrder) return;
     setLoading(true);
     try {
-      const res = await fetch(apiUrl(`/api/orders/${activeOrder.id}/pay`), {
+      const res = await fetch(apiUrl(`/api/marketplace?action=order-pay`), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: activeOrder.id })
       });
       const data = await res.json();
       if (data.success) {

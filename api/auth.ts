@@ -195,6 +195,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // PROFILE UPDATE
+    if (action === 'profile') {
+      const { id, username, email } = req.body;
+
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          error: 'User ID is required'
+        });
+      }
+
+      const user = users.find(u => u.id === id);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: 'User tidak ditemukan'
+        });
+      }
+
+      // Update user profile
+      if (username) user.username = username;
+      if (email) user.email = email;
+
+      return res.status(200).json({
+        success: true,
+        message: 'Profile berhasil diupdate',
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+          avatar: user.avatar
+        }
+      });
+    }
+
     return res.status(400).json({ error: 'Invalid action parameter' });
 
   } catch (err: any) {

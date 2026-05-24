@@ -137,10 +137,10 @@ export default function SellerDashboard({ products, orders, onRefreshData }: Sel
   const handleUpdateOrderStatus = async (orderId: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'pending' ? 'processing' : currentStatus === 'processing' ? 'shipped' : 'completed';
     try {
-      const res = await fetch(apiUrl(`/api/orders/${orderId}/status`), {
+      const res = await fetch(apiUrl(`/api/marketplace?action=order-status`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus })
+        body: JSON.stringify({ orderId, status: nextStatus })
       });
       if (res.ok) {
         onRefreshData();

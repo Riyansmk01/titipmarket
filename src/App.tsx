@@ -499,7 +499,7 @@ export default function App() {
     window.open(`https://app.pakasir.com/pay/depodomain/${amount}?order_id=topup-${currentUser.id}-${Date.now()}`, '_blank');
     
     try {
-      const res = await fetch(apiUrl('/api/wallet/topup'), {
+      const res = await fetch(apiUrl('/api/wallet'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id, amount })
@@ -553,7 +553,7 @@ export default function App() {
     };
 
     try {
-      const res = await fetch(apiUrl('/api/visual-search'), {
+      const res = await fetch(apiUrl('/api/marketplace?action=visual-search'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageBase64: mockImagesMap[mockSelection] || mockImagesMap.apparel })
@@ -583,7 +583,7 @@ export default function App() {
     setKycResult(null);
 
     try {
-      const res = await fetch(apiUrl('/api/kyc/upload'), {
+      const res = await fetch(apiUrl('/api/marketplace?action=kyc-upload'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -677,7 +677,7 @@ export default function App() {
     e.stopPropagation();
     if (!currentUser) return;
     try {
-      const res = await fetch(apiUrl('/api/favorites/toggle'), {
+      const res = await fetch(apiUrl('/api/marketplace?action=favorites'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id, productId })
@@ -726,7 +726,7 @@ export default function App() {
 
   const handleAdminVerifyStoreToggle = async (storeId: string, verified: boolean) => {
     try {
-      const res = await fetch(`/api/stores/verify/${storeId}`, {
+      const res = await fetch(apiUrl(`/api/marketplace?action=verify-store&storeId=${storeId}`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ verified })
@@ -1463,7 +1463,7 @@ export default function App() {
                         const storeBioInput = (e.target as any).storeBioInput.value;
                         const storeBannerInput = (e.target as any).storeBannerInput.value;
 
-                        const res = await fetch(apiUrl('/api/stores/update'), {
+                        const res = await fetch(apiUrl('/api/marketplace?action=update-store'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
@@ -2280,7 +2280,7 @@ export default function App() {
                     const updatedUsername = formData.get('username') as string;
                     const updatedEmail = formData.get('email') as string;
                     try {
-                      const res = await fetch(apiUrl('/api/auth/profile'), {
+                      const res = await fetch(apiUrl('/api/auth?action=profile'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
