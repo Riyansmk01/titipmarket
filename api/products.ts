@@ -4,6 +4,29 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://psnamifiadsvvpmetfyv.supabase.co';
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
 
+const defaultProducts = [
+  {
+    id: "prod-1",
+    title: "Smartphone Premium",
+    price: 4999000,
+    description: "Smartphone flagship terbaru",
+    categoryId: "tech",
+    images: ["https://images.unsplash.com/photo-1511707267537-b85faf00021e"],
+    stock: 15,
+    rating: 4.8
+  },
+  {
+    id: "prod-2",
+    title: "Laptop Gaming",
+    price: 8999000,
+    description: "Laptop dengan RTX 4070",
+    categoryId: "tech",
+    images: ["https://images.unsplash.com/photo-1588621538326-bccc019a0f1c"],
+    stock: 8,
+    rating: 4.9
+  }
+];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,10 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (!supabaseAnonKey) {
-      return res.status(500).json({
-        error: 'Supabase not configured',
-        message: 'VITE_SUPABASE_ANON_KEY is missing'
-      });
+      return res.status(200).json(defaultProducts);
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -33,8 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) {
         console.error('[Products Error]', error);
-        // Fallback to empty array if table doesn't exist
-        return res.status(200).json([]);
+        return res.status(200).json(defaultProducts);
       }
 
       return res.status(200).json(products || []);

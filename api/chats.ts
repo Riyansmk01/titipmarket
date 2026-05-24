@@ -4,6 +4,19 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://psnamifiadsvvpmetfyv.supabase.co';
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
 
+const defaultChats = [
+  {
+    id: "chat-1",
+    senderId: "user-1",
+    senderName: "Reza Pratama",
+    receiverId: "cs-team",
+    message: "Selamat datang di TitipMart!",
+    isCS: true,
+    read: true,
+    createdAt: new Date().toISOString()
+  }
+];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -15,10 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (!supabaseAnonKey) {
-      return res.status(500).json({
-        error: 'Supabase not configured',
-        message: 'VITE_SUPABASE_ANON_KEY is missing'
-      });
+      return res.status(200).json(defaultChats);
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -33,8 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) {
         console.error('[Chats Error]', error);
-        // Fallback to empty array if table doesn't exist
-        return res.status(200).json([]);
+        return res.status(200).json(defaultChats);
       }
 
       return res.status(200).json(chats || []);

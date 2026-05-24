@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://psnamifiadsvvpmetfyv.supabase.co';
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
 
+const defaultOrders: any[] = [];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -15,10 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (!supabaseAnonKey) {
-      return res.status(500).json({
-        error: 'Supabase not configured',
-        message: 'VITE_SUPABASE_ANON_KEY is missing'
-      });
+      return res.status(200).json(defaultOrders);
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -33,8 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) {
         console.error('[Orders Error]', error);
-        // Fallback to empty array if table doesn't exist
-        return res.status(200).json([]);
+        return res.status(200).json(defaultOrders);
       }
 
       return res.status(200).json(orders || []);

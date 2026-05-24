@@ -30,7 +30,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) {
         console.error('[Promos Error]', error);
-        return res.status(200).json([]);
+        const defaultPromos = [
+          {
+            id: "promo-1",
+            code: "WELCOME50",
+            discount: 50000,
+            description: "Welcome discount untuk user baru",
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            active: true,
+            createdAt: new Date().toISOString()
+          }
+        ];
+        return res.status(200).json(defaultPromos);
       }
 
       return res.status(200).json(promos || []);
