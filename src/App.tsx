@@ -361,7 +361,12 @@ export default function App() {
       if (!credential) return;
       
       const base64Url = credential.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const pad = base64.length % 4;
+      if (pad) {
+        base64 += new Array(5 - pad).join('=');
+      }
+      
       const jsonPayload = decodeURIComponent(window.atob(base64).split('').map((c) => {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
@@ -408,25 +413,21 @@ export default function App() {
   useEffect(() => {
     // Only initialize when modal is actually visible (isSettingsOpen = true)
     if (typeof window !== 'undefined' && isSettingsOpen) {
-      const initializeGsi = () => {
-        // Guard: Only initialize once
-        if (googleInitialized.current) {
-          console.log('[Google SDK] Already initialized, skipping...');
-          return;
-        }
-
+      const renderGoogleButton = () => {
         if ((window as any).google?.accounts?.id) {
           try {
-            const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "424099504402-lbldmb8gajpojbpegldoc2ou1rvcnled.apps.googleusercontent.com";
-            console.log('[Google SDK] Initializing with Client ID...');
-            
-            (window as any).google.accounts.id.initialize({
-              client_id: googleClientId,
-              callback: handleGoogleCredentialResponse,
-              auto_select: false,
-            });
-            
-            googleInitialized.current = true;
+            if (!googleInitialized.current) {
+              const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "424099504402-lbldmb8gajpojbpegldoc2ou1rvcnled.apps.googleusercontent.com";
+              console.log('[Google SDK] Initializing with Client ID...');
+              
+              (window as any).google.accounts.id.initialize({
+                client_id: googleClientId,
+                callback: handleGoogleCredentialResponse,
+                auto_select: false,
+              });
+              
+              googleInitialized.current = true;
+            }
             
             // Wait a brief moment to ensure DOM is ready
             setTimeout(() => {
@@ -434,6 +435,8 @@ export default function App() {
               if (btnParent) {
                 console.log('[Google Button] Container found, rendering button...');
                 try {
+                  // Clear contents just in case it's a re-render
+                  btnParent.innerHTML = '';
                   (window as any).google.accounts.id.renderButton(btnParent, {
                     type: "standard",
                     theme: "outline",
@@ -448,8 +451,6 @@ export default function App() {
                 }
               } else {
                 console.warn("[Google Button] ❌ Container div not found in DOM");
-                console.log("[Debug] Available elements with 'google' in ID:", 
-                  Array.from(document.querySelectorAll('[id*="google"]')).map(el => el.id));
               }
             }, 100);
           } catch (e) {
@@ -457,10 +458,10 @@ export default function App() {
           }
         } else {
           console.log('[Google SDK] Not loaded yet, retrying in 500ms...');
-          setTimeout(initializeGsi, 500);
+          setTimeout(renderGoogleButton, 500);
         }
       };
-      initializeGsi();
+      renderGoogleButton();
     }
   }, [isSettingsOpen]);
 
