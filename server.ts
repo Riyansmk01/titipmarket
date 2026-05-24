@@ -19,6 +19,27 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 app.use(express.json({ limit: "50mb" })); // Support visual search base64 image uploads securely
 
+// CORS and Security Headers - Allow Google OAuth and cross-origin requests
+app.use((req, res, next) => {
+  // Allow requests from the domain
+  const origin = req.headers.origin || '*';
+  res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // COOP header for Google OAuth popup - allow-popups for successful popup communication
+  res.header('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.header('Cross-Origin-Embedder-Policy', 'require-corp');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
 // Credentials pool and Pakasir merchant constants
 const KEYS = {
   GEMINI: process.env.GEMINI_API_KEY || "",
@@ -368,52 +389,60 @@ app.post("/api/auth/login", (req, res) => {
 });
 
 app.post("/api/auth/google-login", (req, res) => {
-  const { email, username, avatar } = req.body;
-  if (!email) {
-    return res.status(400).json({ error: "Email Google tidak valid." });
-  }
+  try {
+    const { email, username, avatar } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email Google tidak valid." });
+    }
 
-  const isRiyan = email.toLowerCase() === "perdhanariyan@gmail.com";
-  let user = registeredUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-  if (!user) {
-    // Register new user automatically with 0 balance
-    user = {
-      id: `user-${Date.now()}`,
-      username: username || email.split('@')[0],
-      email: email.toLowerCase(),
-      avatar: avatar || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde.jpg`,
-      role: isRiyan ? "admin" : "buyer",
-      walletBalance: 0,
-      tier: "BRONZE",
-      favorites: [],
-      recentlyViewed: [],
-      kycVerified: isRiyan,
-      coins: 0
-    };
-    registeredUsers.push(user);
+    const isRiyan = email.toLowerCase() === "perdhanariyan@gmail.com";
+    let user = registeredUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) {
+      // Register new user automatically with 0 balance
+      user = {
+        id: `user-${Date.now()}`,
+        username: username || email.split('@')[0],
+        email: email.toLowerCase(),
+        avatar: avatar || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde.jpg`,
+        role: isRiyan ? "admin" : "buyer",
+        walletBalance: 0,
+        tier: "BRONZE",
+        favorites: [],
+        recentlyViewed: [],
+        kycVerified: isRiyan,
+        coins: 0
+      };
+      registeredUsers.push(user);
 
-    liveNotifications.unshift({
-      id: `not-${Date.now()}`,
-      title: "Google Sign-In Baru 🚀",
-      message: `${user.username} bergabung sebagai pembeli via Google.`,
-      type: "system",
-      time: "Baru saja"
+      liveNotifications.unshift({
+        id: `not-${Date.now()}`,
+        title: "Google Sign-In Baru 🚀",
+        message: `${user.username} bergabung sebagai pembeli via Google.`,
+        type: "system",
+        time: "Baru saja"
+      });
+    } else {
+      // If user already exists, update avatar or username if empty
+      if (avatar && (!user.avatar || user.avatar.includes("unsplash"))) {
+        user.avatar = avatar;
+      }
+      // Correct roles state-side
+      if (isRiyan) {
+        user.role = "admin";
+        user.kycVerified = true;
+      } else if (user.role === "admin") {
+        user.role = "buyer"; // Security downgrade
+      }
+    }
+
+    return res.json({ success: true, user });
+  } catch (error) {
+    console.error("[Google Login Error]", error);
+    return res.status(500).json({ 
+      success: false,
+      error: "Internal server error during Google login" 
     });
-  } else {
-    // If user already exists, update avatar or username if empty
-    if (avatar && (!user.avatar || user.avatar.includes("unsplash"))) {
-      user.avatar = avatar;
-    }
-    // Correct roles state-side
-    if (isRiyan) {
-      user.role = "admin";
-      user.kycVerified = true;
-    } else if (user.role === "admin") {
-      user.role = "buyer"; // Security downgrade
-    }
   }
-
-  res.json({ success: true, user });
 });
 
 app.post("/api/auth/forgot-password", (req, res) => {

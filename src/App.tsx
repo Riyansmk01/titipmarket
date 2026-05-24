@@ -62,6 +62,9 @@ export default function App() {
   const [promos, setPromos] = useState<PromoVo[]>([]);
   const [activeReviews, setActiveReviews] = useState<Review[]>([]);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+
+  // Guard to prevent multiple Google SDK initializations
+  const googleInitialized = useRef(false);
   
   // Auth & Profile states (starts loaded with Java-preseeded Gold user)
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
@@ -334,15 +337,26 @@ export default function App() {
         })
       });
       
-      if (res.ok) {
-        const data = await res.json();
+      // Safe JSON parsing to handle both JSON and HTML error responses
+      let data: any;
+      const contentType = res.headers.get('content-type');
+      
+      if (contentType?.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.error('Invalid response type:', contentType, 'Response:', text);
+        setAuthError('Server returned invalid response. Check console for details.');
+        return;
+      }
+      
+      if (res.ok && data?.user) {
         setCurrentUser(data.user);
         setIsSettingsOpen(false);
         fetchMarketplaceState();
         alert(`Berhasil masuk sebagai ${data.user.username} menggunakan Google!`);
       } else {
-        const errData = await res.json();
-        setAuthError(errData.error || 'Gagal login via Google.');
+        setAuthError(data?.error || `Login failed with status ${res.status}`);
       }
     } catch (err) {
       console.error('Catch google auth error:', err);
@@ -350,10 +364,16 @@ export default function App() {
     }
   };
 
-  // Dynamic Google SSO hook activator
+  // Dynamic Google SSO hook activator - with guard to prevent multiple initializations
   useEffect(() => {
     if (typeof window !== 'undefined' && (isSettingsOpen || authMode)) {
       const initializeGsi = () => {
+        // Guard: Only initialize once
+        if (googleInitialized.current) {
+          console.log('Google SDK already initialized');
+          return;
+        }
+
         if ((window as any).google?.accounts?.id) {
           try {
             const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "424099504402-lbldmb8gajpojbpegldoc2ou1rvcnled.apps.googleusercontent.com";
@@ -362,6 +382,8 @@ export default function App() {
               callback: handleGoogleCredentialResponse,
               auto_select: false,
             });
+            
+            googleInitialized.current = true;
             
             const btnParent = document.getElementById("google-signin-btn-container");
             if (btnParent) {
