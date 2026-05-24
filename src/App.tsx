@@ -128,6 +128,9 @@ export default function App() {
   // Custom visual telemetry panel safety toggle
   const [showSecurityCenter, setShowSecurityCenter] = useState(false);
   
+  // Beautiful check-in notification state
+  const [checkInNotification, setCheckInNotification] = useState<{ show: boolean; coins: number; rupiah: number } | null>(null);
+  
   // Seed local client profile values on mount
   useEffect(() => {
     // Initial silent auto login for Reza Pratama
@@ -494,9 +497,12 @@ export default function App() {
       if (res.status >= 400) {
         alert(data.error || 'Review gagal.');
       } else {
+        // Show beautiful check-in notification
+        setCheckInNotification({ show: true, coins: 100, rupiah: 1 });
+        // Auto-hide after 4 seconds
+        setTimeout(() => setCheckInNotification(null), 4000);
         // Redraw states and refresh balance
         fetchMarketplaceState();
-        alert(`Selamat! Anda berhasil mengklaim bonus harian sebesar 100 Coins (+Rp 1) dari Market Digi!`);
       }
     } catch (err) {
       console.error(err);
@@ -2874,6 +2880,71 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* BEAUTIFUL CHECK-IN NOTIFICATION */}
+      <AnimatePresence>
+        {checkInNotification?.show && (
+          <motion.div
+            initial={{ opacity: 0, y: -100, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -100, scale: 0.8 }}
+            transition={{ type: "spring", damping: 15, stiffness: 300 }}
+            className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm px-4"
+          >
+            <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-white/20">
+              {/* Animated gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/80 via-orange-500/80 to-rose-500/80" />
+              
+              {/* Animated background elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-bounce" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '0.5s'}} />
+              
+              {/* Content */}
+              <div className="relative p-6 flex items-center gap-4 backdrop-blur-sm">
+                {/* Coin icon with animation */}
+                <motion.div
+                  animate={{ rotate: 360, y: [0, -8, 0] }}
+                  transition={{ rotate: { duration: 2, repeat: Infinity }, y: { duration: 2, repeat: Infinity } }}
+                  className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-white/40"
+                >
+                  <span className="text-3xl">🪙</span>
+                </motion.div>
+                
+                <div className="flex-1 text-white">
+                  <h3 className="text-lg font-black font-display tracking-tight leading-tight">
+                    🎉 Selamat!
+                  </h3>
+                  <p className="text-sm font-bold mt-1 leading-tight">
+                    Anda berhasil mengklaim bonus harian
+                  </p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center gap-1.5">
+                      <span className="text-lg">🪙</span>
+                      <span className="font-bold text-sm">{checkInNotification.coins}</span>
+                      <span className="text-xs">Coins</span>
+                    </div>
+                    <span className="text-xs font-bold opacity-80">+</span>
+                    <div className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+                      <span className="font-bold text-sm">Rp {checkInNotification.rupiah}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Close button */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setCheckInNotification(null)}
+                  className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center flex-shrink-0 transition-colors"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

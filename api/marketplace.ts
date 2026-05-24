@@ -78,7 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
     // PRODUCTS
-    if (action === 'products' || action === undefined && req.path === '/api/marketplace' && req.method === 'GET') {
+    if (action === 'products' || (action === undefined && req.method === 'GET')) {
       if (!supabase) {
         return res.status(200).json(defaultProducts);
       }
