@@ -387,12 +387,21 @@ export default function App() {
             
             const btnParent = document.getElementById("google-signin-btn-container");
             if (btnParent) {
-              (window as any).google.accounts.id.renderButton(btnParent, {
-                theme: "outline",
-                size: "large",
-                width: 290,
-                text: "signin_with"
-              });
+              try {
+                (window as any).google.accounts.id.renderButton(btnParent, {
+                  type: "standard",
+                  theme: "outline",
+                  size: "large",
+                  text: "signin_with",
+                  logo_alignment: "left"
+                });
+                console.log("[Google Button] Rendered successfully");
+              } catch (renderErr) {
+                console.warn("[Google Button Render Error]", renderErr);
+                btnParent.style.display = "block";
+              }
+            } else {
+              console.warn("[Google Button] Container not found");
             }
           } catch (e) {
             console.warn("GSI rendering error:", e);
@@ -2417,9 +2426,9 @@ export default function App() {
                   <div className="flex-grow border-t border-slate-200"></div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center space-y-2 pointer-events-auto">
+                <div className="flex flex-col items-center justify-center space-y-3 pointer-events-auto w-full">
                   {/* Google Authenticator container */}
-                  <div id="google-signin-btn-container" className="min-h-[40px] flex justify-center w-full" />
+                  <div id="google-signin-btn-container" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
                   
                   {/* Backup / Simulator for popup context blockers */}
                   <button
