@@ -1,8 +1,8 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
 // Default categories fallback
 const defaultCategories = [
@@ -22,7 +22,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    if (!supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('[Categories] Missing Supabase credentials');
       // Return default categories
       return res.status(200).json(defaultCategories);
     }
