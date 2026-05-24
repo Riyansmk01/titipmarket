@@ -20,6 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const { action } = req.query;
 
     // GET REVIEWS
     if (req.method === 'GET') {
@@ -41,13 +42,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(reviews || []);
     }
 
-    // POST REVIEW
-    if (req.method === 'POST') {
-      const { productId, userId, rating, title, comment } = req.body;
+    // POST REVIEW or CREATE REVIEW
+    if (req.method === 'POST' && (action === 'create' || !action)) {
+      const { productId, userId, rating, title, comment, username, photoUrl, videoUrl } = req.body;
 
-      if (!productId || !userId || !rating) {
+      if (!productId || !rating) {
         return res.status(400).json({
-          error: 'productId, userId, and rating are required'
+          error: 'productId and rating are required'
         });
       }
 

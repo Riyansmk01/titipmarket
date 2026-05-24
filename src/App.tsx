@@ -131,7 +131,7 @@ export default function App() {
   // Seed local client profile values on mount
   useEffect(() => {
     // Initial silent auto login for Reza Pratama
-    fetch(apiUrl('/api/auth/login'), {
+    fetch(apiUrl('/api/auth?action=login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'reza@marketdigi.me', password: 'sandi123' })
@@ -149,13 +149,13 @@ export default function App() {
   const fetchMarketplaceState = async () => {
     try {
       const [resProd, resOrders, resStores, resCats, resNotifs, resPromos, resChats] = await Promise.all([
-        fetch(apiUrl('/api/products')),
-        fetch(apiUrl('/api/orders')),
-        fetch(apiUrl('/api/stores')),
-        fetch(apiUrl('/api/categories')),
-        fetch(apiUrl('/api/notifications')),
-        fetch(apiUrl('/api/promo')),
-        fetch(apiUrl('/api/chats'))
+        fetch(apiUrl('/api/marketplace?action=products')),
+        fetch(apiUrl('/api/marketplace?action=orders')),
+        fetch(apiUrl('/api/marketplace?action=stores')),
+        fetch(apiUrl('/api/marketplace?action=categories')),
+        fetch(apiUrl('/api/marketplace?action=notifications')),
+        fetch(apiUrl('/api/marketplace?action=promos')),
+        fetch(apiUrl('/api/marketplace?action=chats'))
       ]);
 
       const [prods, ords, strs, cats, notifs, pCodeList, chatList] = await Promise.all([
@@ -179,7 +179,7 @@ export default function App() {
       // Keep currentUser local state synchronized with backend db fields
       if (currentUser) {
         const freshUser = ords[0]?.buyerId ? null : true; // trigger recalculation if needed
-        fetch(apiUrl(`/api/auth/login`), {
+        fetch(apiUrl(`/api/auth?action=login`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: currentUser.email })
@@ -200,9 +200,9 @@ export default function App() {
     fetchMarketplaceState();
     // Background polling every 5 seconds to fetch active orders and chats
     const interval = setInterval(() => {
-      fetch(apiUrl('/api/notifications')).then(r => r.json()).then(d => setNotifications(d)).catch(() => {});
-      fetch(apiUrl('/api/chats')).then(r => r.json()).then(d => setChats(d)).catch(() => {});
-      fetch(apiUrl('/api/orders')).then(r => r.json()).then(d => setOrders(d)).catch(() => {});
+      fetch(apiUrl('/api/marketplace?action=notifications')).then(r => r.json()).then(d => setNotifications(d)).catch(() => {});
+      fetch(apiUrl('/api/marketplace?action=chats')).then(r => r.json()).then(d => setChats(d)).catch(() => {});
+      fetch(apiUrl('/api/marketplace?action=orders')).then(r => r.json()).then(d => setOrders(d)).catch(() => {});
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -210,19 +210,19 @@ export default function App() {
   // Fetch similar recommendations under detailed popup
   useEffect(() => {
     if (selectedProduct) {
-      fetch(apiUrl(`/api/reviews/${selectedProduct.id}`))
+      fetch(apiUrl(`/api/reviews?productId=${selectedProduct.id}`))
         .then(res => res.json())
         .then(data => setActiveReviews(data))
         .catch(err => console.error(err));
 
-      fetch(apiUrl(`/api/products/similar/${selectedProduct.id}`))
+      fetch(apiUrl(`/api/marketplace?action=products`))
         .then(res => res.json())
         .then(data => setSimilarProducts(data))
         .catch(err => console.error(err));
 
       // Trigger viewed history tracking on backend
       if (currentUser) {
-        fetch(apiUrl('/api/viewed/register'), {
+        fetch(apiUrl('/api/marketplace?action=viewed'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: currentUser.id, productId: selectedProduct.id })
@@ -240,7 +240,7 @@ export default function App() {
 
     if (authMode === 'login') {
       try {
-        const res = await fetch(apiUrl('/api/auth/login'), {
+        const res = await fetch(apiUrl('/api/auth?action=login'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: authEmail, password: authPassword })
@@ -279,7 +279,7 @@ export default function App() {
       }
     } else if (authMode === 'register') {
       try {
-        const res = await fetch(apiUrl('/api/auth/register'), {
+        const res = await fetch(apiUrl('/api/auth?action=register'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: authUsername, email: authEmail, password: authPassword, role: 'buyer' })
@@ -309,7 +309,7 @@ export default function App() {
       }
     } else if (authMode === 'forgot') {
       try {
-        const res = await fetch(apiUrl('/api/auth/forgot-password'), {
+        const res = await fetch(apiUrl('/api/auth?action=forgot-password'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: authEmail })
@@ -342,7 +342,7 @@ export default function App() {
     e.preventDefault();
     if (!newPassword.trim() || !currentUser) return;
     try {
-      const res = await fetch(apiUrl('/api/auth/change-password'), {
+      const res = await fetch(apiUrl('/api/auth?action=change-password'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: currentUser.email, newPassword })
@@ -372,7 +372,7 @@ export default function App() {
       }).join(''));
       const payload = JSON.parse(jsonPayload);
       
-      const res = await fetch(apiUrl('/api/auth/google-login'), {
+      const res = await fetch(apiUrl('/api/auth?action=google-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -474,7 +474,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch(apiUrl('/api/checkin'), {
+      const res = await fetch(apiUrl('/api/marketplace?action=checkin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id })
@@ -518,7 +518,7 @@ export default function App() {
     if (!chatMessageInput.trim() || !currentUser) return;
 
     try {
-      const res = await fetch(apiUrl('/api/chats'), {
+      const res = await fetch(apiUrl('/api/marketplace?action=chats'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -609,7 +609,7 @@ export default function App() {
     if (!feedbackContent.trim()) return;
 
     try {
-      const res = await fetch(apiUrl('/api/feedback'), {
+      const res = await fetch(apiUrl('/api/marketplace?action=feedback'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -631,9 +631,10 @@ export default function App() {
   // ORDER PAYMENT WEBHOOK ACTIONS FROM BELUM BAYAR FILTERS
   const triggerOrderPaymentAction = async (orderId: string) => {
     try {
-      const res = await fetch(`/api/orders/${orderId}/pay`, {
+      const res = await fetch(apiUrl(`/api/marketplace?action=order-pay`), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
       });
       const data = await res.json();
       if (data.success) {
@@ -693,7 +694,7 @@ export default function App() {
 
     setSubmittingReview(true);
     try {
-      const res = await fetch(apiUrl('/api/reviews'), {
+      const res = await fetch(apiUrl('/api/reviews?action=create'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1240,10 +1241,10 @@ export default function App() {
                                 <button
                                   onClick={async () => {
                                     // Mark completed trigger update
-                                    await fetch(`/api/orders/${ord.id}/status`, {
+                                    await fetch(apiUrl('/api/marketplace?action=order-status'), {
                                       method: 'POST',
                                       headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ status: 'completed' })
+                                      body: JSON.stringify({ orderId: ord.id, status: 'completed' })
                                     });
                                     fetchMarketplaceState();
                                     alert('Pesanan selesai! Silakan beri nilai bintang ulasan Anda.');
