@@ -245,10 +245,22 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: authEmail, password: authPassword })
         });
-        const data = await res.json();
+        
+        // Safe JSON parsing
+        let data: any;
+        const contentType = res.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          console.error('[Auth Response Error] Got non-JSON response:', contentType, text.substring(0, 200));
+          setAuthError(`Server error: invalid response type (${res.status})`);
+          return;
+        }
+        
         if (res.status >= 400) {
           setAuthError(data.error || 'Autentikasi gagal.');
-        } else {
+        } else if (data?.user) {
           setCurrentUser(data.user);
           setAuthMode('logged');
           
@@ -258,8 +270,11 @@ export default function App() {
           else setCurrentRole('buyer');
 
           fetchMarketplaceState();
+        } else {
+          setAuthError('Invalid server response');
         }
       } catch (err) {
+        console.error('[Login Error]', err);
         setAuthError('Gagal terhubung dengan server Market Digi.');
       }
     } else if (authMode === 'register') {
@@ -269,7 +284,19 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: authUsername, email: authEmail, password: authPassword, role: 'buyer' })
         });
-        const data = await res.json();
+        
+        // Safe JSON parsing
+        let data: any;
+        const contentType = res.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          console.error('[Register Response Error]', contentType, text.substring(0, 200));
+          setAuthError(`Server error: invalid response (${res.status})`);
+          return;
+        }
+        
         if (res.status >= 400) {
           setAuthError(data.error || 'Register gagal.');
         } else {
@@ -277,6 +304,7 @@ export default function App() {
           setAuthMode('login');
         }
       } catch (err) {
+        console.error('[Register Error]', err);
         setAuthError('Terjadi kegagalan transmisi server.');
       }
     } else if (authMode === 'forgot') {
@@ -286,7 +314,19 @@ export default function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: authEmail })
         });
-        const data = await res.json();
+        
+        // Safe JSON parsing
+        let data: any;
+        const contentType = res.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          console.error('[ForgotPassword Response Error]', contentType, text.substring(0, 200));
+          setAuthError(`Server error: invalid response (${res.status})`);
+          return;
+        }
+        
         if (res.status >= 400) {
           setAuthError(data.error || 'Email salah.');
         } else {
@@ -366,17 +406,20 @@ export default function App() {
 
   // Dynamic Google SSO hook activator - with guard to prevent multiple initializations
   useEffect(() => {
-    if (typeof window !== 'undefined' && (isSettingsOpen || authMode)) {
+    // Only initialize when modal is actually visible (isSettingsOpen = true)
+    if (typeof window !== 'undefined' && isSettingsOpen) {
       const initializeGsi = () => {
         // Guard: Only initialize once
         if (googleInitialized.current) {
-          console.log('Google SDK already initialized');
+          console.log('[Google SDK] Already initialized, skipping...');
           return;
         }
 
         if ((window as any).google?.accounts?.id) {
           try {
             const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "424099504402-lbldmb8gajpojbpegldoc2ou1rvcnled.apps.googleusercontent.com";
+            console.log('[Google SDK] Initializing with Client ID...');
+            
             (window as any).google.accounts.id.initialize({
               client_id: googleClientId,
               callback: handleGoogleCredentialResponse,
@@ -385,34 +428,41 @@ export default function App() {
             
             googleInitialized.current = true;
             
-            const btnParent = document.getElementById("google-signin-btn-container");
-            if (btnParent) {
-              try {
-                (window as any).google.accounts.id.renderButton(btnParent, {
-                  type: "standard",
-                  theme: "outline",
-                  size: "large",
-                  text: "signin_with",
-                  logo_alignment: "left"
-                });
-                console.log("[Google Button] Rendered successfully");
-              } catch (renderErr) {
-                console.warn("[Google Button Render Error]", renderErr);
-                btnParent.style.display = "block";
+            // Wait a brief moment to ensure DOM is ready
+            setTimeout(() => {
+              const btnParent = document.getElementById("google-signin-btn-container");
+              if (btnParent) {
+                console.log('[Google Button] Container found, rendering button...');
+                try {
+                  (window as any).google.accounts.id.renderButton(btnParent, {
+                    type: "standard",
+                    theme: "outline",
+                    size: "large",
+                    text: "signin_with",
+                    logo_alignment: "left"
+                  });
+                  console.log("[Google Button] ✅ Rendered successfully");
+                } catch (renderErr) {
+                  console.error("[Google Button Render Error]", renderErr);
+                  btnParent.style.display = "block";
+                }
+              } else {
+                console.warn("[Google Button] ❌ Container div not found in DOM");
+                console.log("[Debug] Available elements with 'google' in ID:", 
+                  Array.from(document.querySelectorAll('[id*="google"]')).map(el => el.id));
               }
-            } else {
-              console.warn("[Google Button] Container not found");
-            }
+            }, 100);
           } catch (e) {
-            console.warn("GSI rendering error:", e);
+            console.error("[Google SDK Init Error]", e);
           }
         } else {
+          console.log('[Google SDK] Not loaded yet, retrying in 500ms...');
           setTimeout(initializeGsi, 500);
         }
       };
       initializeGsi();
     }
-  }, [authMode, isSettingsOpen, currentUser]);
+  }, [isSettingsOpen]);
 
 
   // REPUTATION & CHECK-IN DAILY SYSTEM Reward 100 Coins & Rp 1
