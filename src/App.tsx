@@ -2489,7 +2489,7 @@ export default function App() {
                       const email = prompt("Masukkan Alamat Email Google Anda:", "pembeli.google@gmail.com");
                       if (email) {
                         const name = prompt("Masukkan Nama Profil Google Anda:", "Akun Google Baru");
-                        fetch(apiUrl('/api/auth/google-login'), {
+                        fetch(apiUrl('/api/auth?action=google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email, username: name })
@@ -2520,7 +2520,7 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-1.5">
                     <button
                       onClick={async () => {
-                        const r = await fetch(apiUrl('/api/auth/google-login'), {
+                        const r = await fetch(apiUrl('/api/auth?action=google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email: 'buyer.demo@marketdigi.me', username: 'Buyer Demo' })
@@ -2538,7 +2538,7 @@ export default function App() {
                     <button
                       onClick={async () => {
                         // Register seller demo profile
-                        const r = await fetch(apiUrl('/api/auth/google-login'), {
+                        const r = await fetch(apiUrl('/api/auth?action=google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email: 'seller.demo@marketdigi.me', username: 'Seller Demo' })
@@ -2561,7 +2561,7 @@ export default function App() {
                     </button>
                     <button
                       onClick={async () => {
-                        const r = await fetch(apiUrl('/api/auth/google-login'), {
+                        const r = await fetch(apiUrl('/api/auth?action=google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ email: 'perdhanariyan@gmail.com', username: 'Perdhana Riyan' })
