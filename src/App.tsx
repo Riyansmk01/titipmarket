@@ -65,7 +65,7 @@ export default function App() {
   
   // Auth & Profile states (starts loaded with Java-preseeded Gold user)
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
-  const [authEmail, setAuthEmail] = useState('reza@titipmart.id');
+  const [authEmail, setAuthEmail] = useState('reza@marketdigi.me');
   const [authPassword, setAuthPassword] = useState('sandi123');
   const [authUsername, setAuthUsername] = useState('');
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot' | 'logged'>('login');
@@ -131,7 +131,7 @@ export default function App() {
     fetch(apiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'reza@titipmart.id', password: 'sandi123' })
+      body: JSON.stringify({ email: 'reza@marketdigi.me', password: 'sandi123' })
     })
     .then(res => res.json())
     .then(data => {
@@ -257,7 +257,7 @@ export default function App() {
           fetchMarketplaceState();
         }
       } catch (err) {
-        setAuthError('Gagal terhubung dengan server TitipMart.');
+        setAuthError('Gagal terhubung dengan server Market Digi.');
       }
     } else if (authMode === 'register') {
       try {
@@ -356,8 +356,9 @@ export default function App() {
       const initializeGsi = () => {
         if ((window as any).google?.accounts?.id) {
           try {
+            const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "424099504402-lbldmb8gajpojbpegldoc2ou1rvcnled.apps.googleusercontent.com";
             (window as any).google.accounts.id.initialize({
-              client_id: "424099504402-lbldmb8gajpojbpegldoc2ou1rvcnled.apps.googleusercontent.com",
+              client_id: googleClientId,
               callback: handleGoogleCredentialResponse,
               auto_select: false,
             });
@@ -402,7 +403,7 @@ export default function App() {
       } else {
         // Redraw states and refresh balance
         fetchMarketplaceState();
-        alert(`Selamat! Anda berhasil mengklaim bonus harian sebesar 100 Coins (+Rp 1) dari TitipMart!`);
+        alert(`Selamat! Anda berhasil mengklaim bonus harian sebesar 100 Coins (+Rp 1) dari Market Digi!`);
       }
     } catch (err) {
       console.error(err);
@@ -531,14 +532,14 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: currentUser?.username || 'Shopper Anonymous',
-          email: currentUser?.email || 'pembeli@titipmart.id',
+          email: currentUser?.email || 'pembeli@marketdigi.me',
           category: feedbackCategory,
           content: feedbackContent
         })
       });
       if (res.ok) {
         setFeedbackContent('');
-        setFeedbackSuccess('Saran dan Feedback Anda sukses dikirimkan ke pengawas TitipMart!');
+        setFeedbackSuccess('Saran dan Feedback Anda sukses dikirimkan ke pengawas Market Digi!');
         setTimeout(() => setFeedbackSuccess(''), 4000);
       }
     } catch {}
@@ -615,7 +616,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productId: selectedProduct.id,
-          username: reviewName || currentUser?.username || "TitipMart Shopper",
+          username: reviewName || currentUser?.username || "Market Digi Shopper",
           rating: reviewRating,
           comment: reviewComment,
           photoUrl: reviewPhotoUrl || undefined,
@@ -694,23 +695,23 @@ export default function App() {
       <div className="absolute top-10 left-10 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-40 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Brand New Header Logo branding matching TitipMart */}
+      {/* Brand New Header Logo branding matching Market Digi */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           
-          {/* Logo with 3D elements naming to TitipMart */}
+          {/* Logo with 3D elements naming to Market Digi */}
           <div className="flex items-center gap-3 select-none">
             <div className="relative w-11 h-11 flex-shrink-0">
               <img
                 src="/images/titipmart_logo_1779527060606.png"
-                alt="TitipMart Logo"
+                alt="Market Digi Logo"
                 className="w-full h-full object-contain rounded-2xl shadow-md border border-orange-100"
                 referrerPolicy="no-referrer"
               />
             </div>
             <div>
               <h1 className="text-xl font-black font-display tracking-tight text-slate-900 flex items-center gap-2 leading-none">
-                TitipMart
+                Market Digi
                 <span className="text-[10px] bg-orange-100 text-orange-700 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
                   Bright Futuristic
                 </span>
@@ -2439,7 +2440,7 @@ export default function App() {
                         const r = await fetch(apiUrl('/api/auth/google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email: 'buyer.demo@titipmart.id', username: 'Buyer Demo' })
+                          body: JSON.stringify({ email: 'buyer.demo@marketdigi.me', username: 'Buyer Demo' })
                         });
                         const d = await r.json();
                         setCurrentUser(d.user);
@@ -2457,7 +2458,7 @@ export default function App() {
                         const r = await fetch(apiUrl('/api/auth/google-login'), {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email: 'seller.demo@titipmart.id', username: 'Seller Demo' })
+                          body: JSON.stringify({ email: 'seller.demo@marketdigi.me', username: 'Seller Demo' })
                         });
                         const d = await r.json();
                         
