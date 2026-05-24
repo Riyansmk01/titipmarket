@@ -2491,7 +2491,7 @@ export default function App() {
 
                 <div className="flex flex-col items-center justify-center space-y-3 pointer-events-auto w-full">
                   {/* Google Authenticator container */}
-                  <div id="google-signin-btn-container" className="w-full flex justify-center" style={{ minHeight: "44px" }} />
+                  <div id="google-signin-btn-container" className="w-full flex justify-center" style={{ minHeight: "44px", display: 'flex', alignItems: 'center' }} />
                   
                   {/* Backup / Simulator for popup context blockers */}
                   <button
@@ -2500,20 +2500,31 @@ export default function App() {
                       const email = prompt("Masukkan Alamat Email Google Anda:", "pembeli.google@gmail.com");
                       if (email) {
                         const name = prompt("Masukkan Nama Profil Google Anda:", "Akun Google Baru");
-                        fetch(apiUrl('/api/auth?action=google-login'), {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email, username: name })
-                        })
-                        .then(r => r.json())
-                        .then(d => {
-                          if (d.user) {
-                            setCurrentUser(d.user);
-                            setIsSettingsOpen(false);
-                            fetchMarketplaceState();
-                            alert(`Berhasil masuk sebagai ${d.user.username} menggunakan Google Auth!`);
-                          }
-                        });
+                        if (name) {
+                          fetch(apiUrl('/api/auth?action=google-login'), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, username: name })
+                          })
+                          .then(r => {
+                            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                            return r.json();
+                          })
+                          .then(d => {
+                            if (d.user) {
+                              setCurrentUser(d.user);
+                              setIsSettingsOpen(false);
+                              fetchMarketplaceState();
+                              alert(`Berhasil masuk sebagai ${d.user.username} menggunakan Google Auth!`);
+                            } else {
+                              alert('Login gagal: ' + (d.error || 'Unknown error'));
+                            }
+                          })
+                          .catch(err => {
+                            console.error('Google login error:', err);
+                            alert('Gagal login dengan Google: ' + err.message);
+                          });
+                        }
                       }
                     }}
                     className="text-[10px] text-slate-500 hover:text-slate-700 bg-slate-50 border hover:bg-slate-100 p-2.5 px-4 rounded-xl flex items-center gap-1.5 w-full justify-center transition-all cursor-pointer font-bold"
@@ -2531,40 +2542,54 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-1.5">
                     <button
                       onClick={async () => {
-                        const r = await fetch(apiUrl('/api/auth?action=google-login'), {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email: 'buyer.demo@marketdigi.me', username: 'Buyer Demo' })
-                        });
-                        const d = await r.json();
-                        setCurrentUser(d.user);
-                        setCurrentRole('buyer');
-                        setIsSettingsOpen(false);
-                        fetchMarketplaceState();
-                      }}
+                        try {
+                          const r = await fetch(apiUrl('/api/auth?action=google-login'), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: 'buyer.demo@marketdigi.me', username: 'Buyer Demo' })
+                          });
+                          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                          const d = await r.json();
+                          if (d.user) {
+                            setCurrentUser(d.user);
+                            setCurrentRole('buyer');
+                            setIsSettingsOpen(false);
+                            fetchMarketplaceState();
+                          } else {
+                            alert('Login gagal: ' + (d.error || 'Unknown error'));
+                          }
+                        } catch (err) {
+                          console.error('Demo login error:', err);
+                          alert('Gagal login: ' + (err as Error).message);
+                        }
                       className="p-1.5 border rounded-lg bg-orange-50/10 hover:bg-orange-50 border-orange-100 text-[9px] font-bold text-center cursor-pointer pointer-events-auto leading-tight"
                     >
                       Buyer Demo<br/><span className="text-slate-400 font-mono text-[8px]">0 Saldo</span>
                     </button>
                     <button
                       onClick={async () => {
-                        // Register seller demo profile
-                        const r = await fetch(apiUrl('/api/auth?action=google-login'), {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email: 'seller.demo@marketdigi.me', username: 'Seller Demo' })
-                        });
-                        const d = await r.json();
-                        
-                        // Force role to seller
-                        d.user.role = 'seller';
-                        d.user.kycVerified = true;
-                        
-                        // Save choice
-                        setCurrentUser(d.user);
-                        setCurrentRole('seller');
-                        setIsSettingsOpen(false);
-                        fetchMarketplaceState();
+                        try {
+                          const r = await fetch(apiUrl('/api/auth?action=google-login'), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: 'seller.demo@marketdigi.me', username: 'Seller Demo' })
+                          });
+                          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                          const d = await r.json();
+                          if (d.user) {
+                            d.user.role = 'seller';
+                            d.user.kycVerified = true;
+                            setCurrentUser(d.user);
+                            setCurrentRole('seller');
+                            setIsSettingsOpen(false);
+                            fetchMarketplaceState();
+                          } else {
+                            alert('Login gagal: ' + (d.error || 'Unknown error'));
+                          }
+                        } catch (err) {
+                          console.error('Demo seller login error:', err);
+                          alert('Gagal login: ' + (err as Error).message);
+                        }
                       }}
                       className="p-1.5 border rounded-lg bg-blue-50/10 hover:bg-blue-50 border-blue-100 text-[9px] font-bold text-center cursor-pointer pointer-events-auto leading-tight"
                     >
@@ -2572,16 +2597,27 @@ export default function App() {
                     </button>
                     <button
                       onClick={async () => {
-                        const r = await fetch(apiUrl('/api/auth?action=google-login'), {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email: 'perdhanariyan@gmail.com', username: 'Perdhana Riyan' })
-                        });
-                        const d = await r.json();
-                        setCurrentUser(d.user);
-                        setCurrentRole('admin');
-                        setIsSettingsOpen(false);
-                        fetchMarketplaceState();
+                        try {
+                          const r = await fetch(apiUrl('/api/auth?action=google-login'), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: 'perdhanariyan@gmail.com', username: 'Perdhana Riyan' })
+                          });
+                          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                          const d = await r.json();
+                          if (d.user) {
+                            d.user.role = 'admin';
+                            setCurrentUser(d.user);
+                            setCurrentRole('admin');
+                            setIsSettingsOpen(false);
+                            fetchMarketplaceState();
+                          } else {
+                            alert('Login gagal: ' + (d.error || 'Unknown error'));
+                          }
+                        } catch (err) {
+                          console.error('Admin login error:', err);
+                          alert('Gagal login: ' + (err as Error).message);
+                        }
                       }}
                       className="p-1.5 border border-red-200 rounded-lg bg-red-50/10 hover:bg-red-50 text-[9px] font-bold text-center cursor-pointer pointer-events-auto leading-tight text-red-700"
                     >
