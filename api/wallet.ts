@@ -1,12 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-/**
- * Wallet/Top-up Balance API
- * POST /api/wallet/topup - Top up balance
- * GET /api/wallet/:userId - Get user wallet balance
- */
-
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
@@ -20,18 +14,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    if (req.method === 'GET') {
-      const { userId } = req.query;
-      
-      if (!userId) {
-        return res.status(400).json({
-          error: 'userId is required'
-        });
-      }
+    const { action } = req.query;
 
-      if (!supabaseUrl || !supabaseAnonKey) {
-        console.warn('[Wallet] Missing Supabase credentials');
-        // Return default wallet balance
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('[Wallet] Missing Supabase credentials');
+
+      // GET BALANCE - default
+      if (req.method === 'GET') {
+        const { userId } = req.query;
+        if (!userId) {
+          return res.status(400).json({ error: 'userId is required' });
+        }
         return res.status(200).json({
           userId,
           balance: 0,
@@ -40,8 +33,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      // POST TOPUP - default
+      if (req.method === 'POST') {
+        const { userId, amount, method, transactionId } = req.body;
+        return res.status(201).json({
+          success: true,
+          message: `Top-up Rp ${amount?.toLocaleString('id-ID')} berhasil!`,
+          transactionId: transactionId || `TXN-${Date.now()}`,
+          userId,
+          amount,
+          method: method || 'bank_transfer',
+          status: 'success',
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // GET BALANCE
+    if (req.method === 'GET') {
+      const { userId } = req.query;
+
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required' });
+      }
+
       try {
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
         const { data: wallet, error } = await supabase
           .from('wallets')
           .select('*')
@@ -64,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           lastUpdated: wallet.updated_at || new Date().toISOString()
         });
       } catch (dbErr) {
-        console.error('[Wallet GET DB Error]', dbErr);
+        console.error('[Wallet GET Error]', dbErr);
         return res.status(200).json({
           userId,
           balance: 0,
@@ -72,8 +90,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           lastUpdated: new Date().toISOString()
         });
       }
+    }
 
-    } else if (req.method === 'POST') {
+    // POST TOPUP
+    if (req.method === 'POST') {
       const { userId, amount, method, transactionId } = req.body;
 
       if (!userId || !amount || amount <= 0) {
@@ -82,25 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      if (!supabaseUrl || !supabaseAnonKey) {
-        console.warn('[Wallet POST] Missing Supabase credentials');
-        // Simulate successful topup
-        return res.status(201).json({
-          success: true,
-          message: `Top-up Rp ${amount.toLocaleString('id-ID')} berhasil!`,
-          transactionId: transactionId || `TXN-${Date.now()}`,
-          userId,
-          amount,
-          method: method || 'bank_transfer',
-          status: 'success',
-          timestamp: new Date().toISOString()
-        });
-      }
-
       try {
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
-        
-        // Create wallet transaction
         const { data: transaction, error } = await supabase
           .from('wallet_transactions')
           .insert([
@@ -131,8 +133,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           timestamp: new Date().toISOString()
         });
       } catch (dbErr) {
-        console.error('[Wallet POST DB Error]', dbErr);
-        // Fallback - return success anyway since it might be a network error
+        console.error('[Wallet POST Error]', dbErr);
         return res.status(201).json({
           success: true,
           message: `Top-up Rp ${amount.toLocaleString('id-ID')} berhasil!`,
@@ -143,10 +144,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           timestamp: new Date().toISOString()
         });
       }
-
-    } else {
-      return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    return res.status(405).json({ error: 'Method not allowed' });
 
   } catch (err: any) {
     console.error('[Wallet Handler Error]', err);
