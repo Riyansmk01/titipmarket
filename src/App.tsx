@@ -2562,6 +2562,7 @@ export default function App() {
                           console.error('Demo login error:', err);
                           alert('Gagal login: ' + (err as Error).message);
                         }
+                      }}
                       className="p-1.5 border rounded-lg bg-orange-50/10 hover:bg-orange-50 border-orange-100 text-[9px] font-bold text-center cursor-pointer pointer-events-auto leading-tight"
                     >
                       Buyer Demo<br/><span className="text-slate-400 font-mono text-[8px]">0 Saldo</span>
