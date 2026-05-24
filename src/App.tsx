@@ -429,10 +429,15 @@ export default function App() {
               googleInitialized.current = true;
             }
             
-            // Wait a brief moment to ensure DOM is ready
-            setTimeout(() => {
+            // Try multiple times with increasing delays to ensure DOM is ready
+            let attempts = 0;
+            const maxAttempts = 5;
+            
+            const tryRenderButton = () => {
+              attempts++;
               const btnParent = document.getElementById("google-signin-btn-container");
-              if (btnParent) {
+              
+              if (btnParent && btnParent.offsetParent !== null) { // Check if visible
                 console.log('[Google Button] Container found, rendering button...');
                 try {
                   // Clear contents just in case it's a re-render
@@ -449,10 +454,16 @@ export default function App() {
                   console.error("[Google Button Render Error]", renderErr);
                   btnParent.style.display = "block";
                 }
+              } else if (attempts < maxAttempts) {
+                console.warn(`[Google Button] Attempt ${attempts}/${maxAttempts}: Container not ready yet, retrying...`);
+                setTimeout(tryRenderButton, 200 * attempts); // Exponential backoff
               } else {
-                console.warn("[Google Button] ❌ Container div not found in DOM");
+                console.error("[Google Button] ❌ Container div not found after all attempts");
               }
-            }, 100);
+            };
+            
+            // Start with reasonable delay
+            setTimeout(tryRenderButton, 200);
           } catch (e) {
             console.error("[Google SDK Init Error]", e);
           }

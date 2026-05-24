@@ -172,16 +172,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // GOOGLE LOGIN
     if (action === 'google-login') {
-      const { token } = req.body;
+      const { token, email, username } = req.body;
 
-      if (!token) {
+      // Accept either token or email/username combo
+      if (!token && !email) {
         return res.status(400).json({
           success: false,
-          error: 'Google token harus diisi'
+          error: 'Google token atau email harus diisi'
         });
       }
 
-      // Mock verification
+      // If email/username provided (fallback), use those
+      if (email && username) {
+        return res.status(200).json({
+          success: true,
+          message: 'Login Google berhasil',
+          user: {
+            id: `google-${Date.now()}`,
+            email: email,
+            username: username,
+            role: 'buyer',
+            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde.jpg'
+          }
+        });
+      }
+
+      // Mock verification for token
       return res.status(200).json({
         success: true,
         message: 'Login Google berhasil',
