@@ -5,7 +5,7 @@
   "public": true,
   "rewrites": [
     {
-      "source": "/((?!api).*)",
+      "source": "/((?!api|assets|images).*)",
       "destination": "/index.html"
     }
   ],
